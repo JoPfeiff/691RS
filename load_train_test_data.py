@@ -71,7 +71,7 @@ def generate_test_data_tuple(file):
     with open(file) as f:
         for line in f:
             line = line.split(";")
-            test_data.append((line[0],line[1], float(line[2])))
+            test_data.append((line[1],line[0], float(line[2])))
     return test_data
 
 def generate_user_item_dict(file):

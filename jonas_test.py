@@ -15,12 +15,11 @@ import load_train_test_data
 
 
 
-def get_rmse_mae(algo, reviewerID, asin, score, trainset):
+def get_rmse_mae(algo, trainset, testset):
     algo.train(trainset)
-
-    for i in range(0, len(reviewerID)):
-        prediction = algo.predict(uid=reviewerID[i], iid=asin[i], r_ui=score[i])
-    return 1.0, 1.0
+    predictions = algo.test(testset)
+    print predictions
+    return sup.accuracy.rmse(predictions, verbose=True), sup.accuracy.mae(predictions, verbose=True)
 
 def prediction(algo, predset):
     algo.train(trainset)
