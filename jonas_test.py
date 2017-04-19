@@ -15,11 +15,23 @@ import load_train_test_data
 
 
 
-def get_rmse_mae(algo, reviewerID, asin, score):
+def get_rmse_mae(algo, reviewerID, asin, score, trainset):
     algo.train(trainset)
+
     for i in range(0, len(reviewerID)):
         prediction = algo.predict(uid=reviewerID[i], iid=asin[i], r_ui=score[i])
     return 1.0, 1.0
+
+def prediction(algo, predset):
+    algo.train(trainset)
+    prediction_set = []
+    for i in range(0, len(reviewerID)):
+        prediction_set.append(algo.predict(uid=predset[0][i], iid=predset[1][i]))
+    return prediction_set
+
+def get_top_k(top_k_set, pred):
+    print "hi"
+
 
 train_file, test_file = load_train_test_data.load_data('Data/Patio_Lawn_and_Garden_5.json', train_rand=8,test_rand=2)
 
@@ -32,6 +44,11 @@ reader = sup.Reader(line_format = 'item user rating', sep= ";", rating_scale=(1,
 data = sup.Dataset.load_from_file(train_file, reader=reader)
 trainset = data.build_full_trainset()
 data.split(n_folds=5)
+
+user_item_dict = load_train_test_data.generate_user_item_dict(train_file)
+unique_item_list, unique_user_list= load_train_test_data.get_unique_item_user_list(train_file)
+top_k_pred_set = load_train_test_data.get_top_k_pred_set(user_item_dict, unique_item_list, unique_user_list)
+
 
 
 
@@ -82,42 +99,13 @@ for algo, params in algo_dict.iteritems():
 
 
 
-for algo, score in algo_param_scores:
 
-    get_rmse_mae(algo, reviewerID, asin, score)
+for algo, score in algo_param_scores.iteritems():
+    rmse, mae = get_rmse_mae(algo, reviewerID, asin, score, trainset)
 
-
-# for algo, scores in algo_param_scores.iteritems():
-#     algo.predict
-
-print "best MAE: " + str(best_MAE)
-print " algo :"
-print best_MAE_algo
-print "best RMSE: " + str(best_RMSE)
-print " algo :"
-print best_RMSE_algo
 
 
 plot_rmse_mae.plot_line_graph([rmses,maes], ["RMSES","MAES"], "RMSE VS MAE", range(1, len(rmses)+1))
-
-
-
-
-# pdata = pd.from_dict(data)
-# pdata = pd.DataFrame.from_dict(data, orient='index')
-#
-# users = pd.Series.unique(pdata['reviewerID'])
-# products = pd.Series.unique(pdata['asin'])
-#
-# colmat = pd.DataFrame(np.zeros((len(users),len(products))), columns=products, index=users  )
-
-
-# for r in pdata.iterrows():
-#     score = r[1]['overall']
-#     reviewer = r[1]['reviewerID']
-#     product = r[1]['asin']
-#
-#     colmat[[product]].loc[reviewer] = score
 
 
 

@@ -63,3 +63,57 @@ def generate_test_data(file):
             score.append(float(line[2]))
 
     return reviewerID, asin, score
+
+
+def generate_test_data_tuple(file):
+
+    test_data = []
+    with open(file) as f:
+        for line in f:
+            line = line.split(";")
+            test_data.append((line[0],line[1], float(line[2])))
+    return test_data
+
+def generate_user_item_dict(file):
+    user_item_dict={}
+    with open(file) as f:
+        for line in f:
+            line = line.split(";")
+            if line[1] not in user_item_dict:
+                user_item_dict[line[1]] = {}
+            user_item_dict[line[1]][line[0]]=line[2]
+    return user_item_dict
+
+def get_unique_item_user_list(file):
+    unique_item_list = []
+    unique_user_list = []
+    with open(file) as f:
+        for line in f:
+            line = line.split(";")
+            if line[0] not in unique_item_list:
+                unique_item_list.append(line[0])
+            if line[1] not in unique_user_list:
+                unique_user_list.append(line[1])
+    return unique_item_list, unique_user_list
+
+def get_top_k_pred_set(user_item_dict, unique_item_list, unique_user_list):
+
+    reviewerID = []
+    asin = []
+
+    for user in unique_user_list:
+        for item in unique_item_list:
+            if item not in user_item_dict[user]:
+                reviewerID.append(user)
+                asin.append(item)
+    return reviewerID, asin
+
+
+
+
+
+
+
+
+
+
