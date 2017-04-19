@@ -5,13 +5,13 @@ import surprise as sup
 from surprise import SVD
 import os
 import os.path
-from surprise import SVD
-from surprise import Dataset
-from surprise import evaluate, print_perf
+from surprise import SVD, SlopeOne, KNNBasic, KNNWithMeans, NMF, CoClustering
+from surprise import Dataset, GridSearch
+from surprise import evaluate, print_perf, similarities
 from random import randint
+import grid
 
-
-def load_data(file_name, train_rand, test_rand):
+def load_data(file_name, train_rand=8, test_rand=2):
 
     data = {}
     # file_name = 'Data/Patio_Lawn_and_Garden_5.json'
@@ -47,21 +47,44 @@ def load_data(file_name, train_rand, test_rand):
 
         return os.path.expanduser(new_file_name_train), os.path.expanduser(new_file_name_train)
 
-train_file, test_file = load_data('Data/Patio_Lawn_and_Garden_5.json', 9,1)
+train_file, test_file = load_data('Data/Patio_Lawn_and_Garden_5.json', train_rand=8,test_rand=2)
 
-reader = sup.Reader(line_format = 'item user rating', sep= ";", rating_scale=(1,5), )
+reader = sup.Reader(line_format = 'item user rating', sep= ";", rating_scale=(1,5) )
 
 #
 data = sup.Dataset.load_from_file(train_file, reader=reader)
 data.split(n_folds=5)
 
-# We'll use the famous SVD algorithm.
-algo = SVD()
+# aggregate mean absolute errors
+maes = []
+# aggregate rmses
+rmses = []
 
-# Evaluate performances of our algorithm on the dataset.
-perf = evaluate(algo, data, measures=['RMSE', 'MAE'])
+best_MAE = 999
+best_MAE_algo = None
+best_RMSE = 999
+best_RMSE_algo = None
 
-print_perf(perf)
+algo_dict = grid.get_grid()
+
+for algo, params in algo_dict.iteritems():
+    grid_search = GridSearch(algo, params, measures=['RMSE', 'MAE'])
+    grid_search.evaluate(data)
+    if grid_search.best_score["mae"] < best_MAE:
+        best_MAE = grid_search.best_score["mae"]
+        best_MAE_algo = grid_search.best_params
+    if grid_search.best_score["rmse"] < best_RMSE:
+        best_RMSE = grid_search.best_score["rmse"]
+        best_RMSE_algo = grid_search.best_params
+
+print "best MAE: " + str(best_MAE)
+print " algo :"
+print best_MAE_algo
+print "best RMSE: " + str(best_RMSE)
+print " algo :"
+print best_RMSE_algo
+
+
 
 
 
