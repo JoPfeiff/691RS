@@ -14,6 +14,13 @@ import plot_rmse_mae
 import load_train_test_data
 
 
+
+def get_rmse_mae(algo, reviewerID, asin, score):
+    algo.train(trainset)
+    for i in range(0, len(reviewerID)):
+        prediction = algo.predict(uid=reviewerID[i], iid=asin[i], r_ui=score[i])
+    return 1.0, 1.0
+
 train_file, test_file = load_train_test_data.load_data('Data/Patio_Lawn_and_Garden_5.json', train_rand=8,test_rand=2)
 
 reviewerID, asin, score = load_train_test_data.generate_test_data(test_file)
@@ -56,6 +63,7 @@ for algo, params in algo_dict.iteritems():
         maes.append(grid_search.cv_results['scores'][i]['MAE'])
         rmses.append(grid_search.cv_results['scores'][i]['RMSE'])
 
+    # Get best overall algorithm for MAE and RMSE respectively
     if grid_search.best_score["mae"] < best_MAE:
         best_MAE = grid_search.best_score["mae"]
         best_MAE_algo_params = grid_search.best_params['MAE']
@@ -65,18 +73,19 @@ for algo, params in algo_dict.iteritems():
         best_RMSE_algo_params = grid_search.best_params["rmse"]
         best_RMSE_algo = grid_search.best_estimator["rmse"]
 
-    #algo_param_scores[grid_search.best_estimator] = {"RMSE":grid_search.best_score["rmse"], "MAE": grid_search.best_score["mae"]}
+    # get best params of each algorithm
     algo_param_scores[grid_search.best_estimator["rmse"]] = grid_search.best_score["rmse"]
     algo_param_scores[grid_search.best_estimator["mae"]] = grid_search.best_score["mae"]
 
     best  = grid_search.best_estimator["rmse"]
     best.train(trainset)
-    for i in range(0, len(reviewerID)):
-        prediction = best.predict(uid=reviewerID[i], iid=asin[i], r_ui=score[i])
 
 
 
-    print "done"
+for algo, score in algo_param_scores:
+
+    get_rmse_mae(algo, reviewerID, asin, score)
+
 
 # for algo, scores in algo_param_scores.iteritems():
 #     algo.predict
@@ -90,6 +99,8 @@ print best_RMSE_algo
 
 
 plot_rmse_mae.plot_line_graph([rmses,maes], ["RMSES","MAES"], "RMSE VS MAE", range(1, len(rmses)+1))
+
+
 
 
 # pdata = pd.from_dict(data)
