@@ -6,7 +6,7 @@ import os
 import os.path
 from surprise import Dataset
 from surprise import evaluate, print_perf
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 import jonas_test
@@ -30,27 +30,28 @@ rmses = []
 for algorithm in [SVD(), KNNBasic(), KNNWithMeans(), NMF(), CoClustering()]:
 	perf = evaluate(algorithm, data, measures=['RMSE', 'MAE']) #evaluate on these errors
 	print_perf(perf)
-	
 	maes.append(perf["mae"]) #append these to their respective lists
 	rmses.append(perf["rmse"])
 	
 #chart MAE and RMSE across algorithms
-finalmaes = [alg_scores[-1] for alg_scores in maes] #grab the last element which is the average score
-finalrmses = [alg_scores[-1] for alg_scores in rmses] #grab the last element which is the average score
+finalmaes = [np.mean(alg_scores) for alg_scores in maes] #grab the last element which is the average score
+finalrmses = [np.mean(alg_scores) for alg_scores in rmses] #grab the last element which is the average score
 
+print min(finalmaes), min(finalrmses)
+'''
 inds = np.arange(len(finalmaes))
 labels = ["SVD", "KNNBasic", "KNNWithMeans", "NMF", "CoClustering"]
 
 
 plt.figure(2, figsize=(6,4))  #6x4 is the aspect ratio for the plot
-plt.plot(inds,values2,'or-', linewidth=3) #Plot the first series in red with circle marker
-plt.plot(inds,values,'sb-', linewidth=3)
+plt.plot(inds,finalmaes,'or-', linewidth=3) #Plot the first series in red with circle marker
+plt.plot(inds,finalrmses,'sb-', linewidth=3)
 
 
 plt.grid(True) #Turn the grid on
 plt.ylabel("Error") #Y-axis label
 plt.xlabel("Model") #X-axis label
-plt.title("Advertising Model Selection: \nError vs Value on Decision Tree and \nRandom Forest Classifiers") #Plot title
+plt.title("MAE and RMSE on Patio Lawn and Garden dataset") #Plot title
 plt.ylim(0,2) #Set yaxis range
 plt.legend(["MAE", "RMSE"],loc="best")
 
@@ -59,9 +60,10 @@ plt.legend(["MAE", "RMSE"],loc="best")
 plt.tight_layout()
 
 #Save the chart
-plt.savefig("../Figures/example_line_plot2.pdf")
+plt.savefig("../Figures/multiple_models.pdf")
 
 #Displays the plots.
 #You must close the plot window for the code following each show()
 #to continue to run
 plt.show()
+'''
