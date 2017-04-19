@@ -10,72 +10,75 @@ from surprise import Dataset, GridSearch
 from surprise import evaluate, print_perf, similarities
 from random import randint
 import grid
+import plot_rmse_mae
+import load_train_test_data
 
-def load_data(file_name, train_rand=8, test_rand=2):
 
-    data = {}
-    # file_name = 'Data/Patio_Lawn_and_Garden_5.json'
-    new_file_name = file_name.split(".")
-    new_file_name_train = new_file_name[0] +"_train_"+ str(train_rand)+ ".csv"
-    new_file_name_test = new_file_name[0] +"_test_"+ str(test_rand)+ ".csv"
+train_file, test_file = load_train_test_data.load_data('Data/Patio_Lawn_and_Garden_5.json', train_rand=8,test_rand=2)
 
-    if os.path.isfile(new_file_name_train) and os.path.isfile(new_file_name_test):
-        return os.path.expanduser(new_file_name_train), os.path.isfile(new_file_name_test)
+reviewerID, asin, score = load_train_test_data.generate_test_data(test_file)
 
-    else:
-        with open(file_name) as data_file:
-            id = 0
-            for line in data_file:
-                data[id] = json.loads(line)
-                id+=1
-
-        data_csv_string_train = ""
-        data_csv_string_test = ""
-
-        for elem in data.iteritems():
-            if randint(1, train_rand+test_rand) <= train_rand:
-                data_csv_string_train += elem[1]['reviewerID'] + ";" + elem[1]['asin'] + ";" + str(elem[1]['overall']) + "\n"
-            else:
-                data_csv_string_test += elem[1]['reviewerID'] + ";" + elem[1]['asin'] + ";" + str(
-                    elem[1]['overall']) + "\n"
-
-        with open(new_file_name_train, "w") as text_file:
-            text_file.write(data_csv_string_train)
-
-        with open(new_file_name_test, "w") as text_file:
-            text_file.write(data_csv_string_test)
-
-        return os.path.expanduser(new_file_name_train), os.path.expanduser(new_file_name_train)
-
-train_file, test_file = load_data('Data/Patio_Lawn_and_Garden_5.json', train_rand=8,test_rand=2)
 
 reader = sup.Reader(line_format = 'item user rating', sep= ";", rating_scale=(1,5) )
 
 #
 data = sup.Dataset.load_from_file(train_file, reader=reader)
+trainset = data.build_full_trainset()
 data.split(n_folds=5)
+
+
 
 # aggregate mean absolute errors
 maes = []
 # aggregate rmses
 rmses = []
 
+algo_param_scores ={}
+
 best_MAE = 999
+best_MAE_algo_params = None
 best_MAE_algo = None
 best_RMSE = 999
+best_RMSE_algo_params = None
 best_RMSE_algo = None
+
+
 
 algo_dict = grid.get_grid()
 
 for algo, params in algo_dict.iteritems():
     grid_search = GridSearch(algo, params, measures=['RMSE', 'MAE'])
     grid_search.evaluate(data)
+
+    test = grid_search.cv_results
+    # I don't know why but sumetimes cv_results RMSE is empty? This is why Im doing it like this:
+    for i in range(0, len(grid_search.cv_results['scores'])):
+        maes.append(grid_search.cv_results['scores'][i]['MAE'])
+        rmses.append(grid_search.cv_results['scores'][i]['RMSE'])
+
     if grid_search.best_score["mae"] < best_MAE:
         best_MAE = grid_search.best_score["mae"]
-        best_MAE_algo = grid_search.best_params
+        best_MAE_algo_params = grid_search.best_params['MAE']
+        best_MAE_algo = grid_search.best_estimator['MAE']
     if grid_search.best_score["rmse"] < best_RMSE:
         best_RMSE = grid_search.best_score["rmse"]
-        best_RMSE_algo = grid_search.best_params
+        best_RMSE_algo_params = grid_search.best_params["rmse"]
+        best_RMSE_algo = grid_search.best_estimator["rmse"]
+
+    # algo_param_scores[grid_search.best_estimator] = {"RMSE":grid_search.best_score["rmse"], "MAE": grid_search.best_score["mae"]}
+
+    best  = grid_search.best_estimator["rmse"]
+    best.train(trainset)
+    for i in range(0, len(reviewerID)):
+        prediction = best.predict(uid=reviewerID[i], iid=asin[i], r_ui=score[i])
+        if prediction.est < 4.18 or prediction.est > 4.2:
+            print(prediction.est)
+
+
+    print "done"
+
+# for algo, scores in algo_param_scores.iteritems():
+#     algo.predict
 
 print "best MAE: " + str(best_MAE)
 print " algo :"
@@ -85,7 +88,7 @@ print " algo :"
 print best_RMSE_algo
 
 
-
+plot_rmse_mae.plot_line_graph([rmses,maes], ["RMSES","MAES"], "RMSE VS MAE", range(1, len(rmses)+1))
 
 
 # pdata = pd.from_dict(data)
