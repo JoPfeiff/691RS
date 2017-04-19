@@ -65,14 +65,15 @@ for algo, params in algo_dict.iteritems():
         best_RMSE_algo_params = grid_search.best_params["rmse"]
         best_RMSE_algo = grid_search.best_estimator["rmse"]
 
-    # algo_param_scores[grid_search.best_estimator] = {"RMSE":grid_search.best_score["rmse"], "MAE": grid_search.best_score["mae"]}
+    #algo_param_scores[grid_search.best_estimator] = {"RMSE":grid_search.best_score["rmse"], "MAE": grid_search.best_score["mae"]}
+    algo_param_scores[grid_search.best_estimator["rmse"]] = grid_search.best_score["rmse"]
+    algo_param_scores[grid_search.best_estimator["mae"]] = grid_search.best_score["mae"]
 
     best  = grid_search.best_estimator["rmse"]
     best.train(trainset)
     for i in range(0, len(reviewerID)):
         prediction = best.predict(uid=reviewerID[i], iid=asin[i], r_ui=score[i])
-        if prediction.est < 4.18 or prediction.est > 4.2:
-            print(prediction.est)
+
 
 
     print "done"
