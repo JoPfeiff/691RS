@@ -13,12 +13,13 @@ import grid
 import plot_rmse_mae
 import load_train_test_data
 
+from operator import itemgetter
 
 
 def get_rmse_mae(algo, trainset, testset):
-    algo.train(trainset)
+    # algo.train(trainset)
     predictions = algo.test(testset)
-    print predictions
+    # print predictions
     return sup.accuracy.rmse(predictions, verbose=True), sup.accuracy.mae(predictions, verbose=True)
 
 def prediction(algo, predset):
@@ -28,8 +29,29 @@ def prediction(algo, predset):
         prediction_set.append(algo.predict(uid=predset[0][i], iid=predset[1][i]))
     return prediction_set
 
-def get_top_k(top_k_set, pred):
-    print "hi"
+def get_top_k(algo, top_k_set, k=10):
+    print "starting prediction of topK"
+    predictions = algo.test(top_k_set)
+    print "topK predicted"
+    top_k_dict = {}
+    print "build topK dict"
+    for elem in predictions:
+        if elem.uid not in top_k_dict:
+            top_k_dict[elem.uid] = []
+        top_k_dict[elem.uid].append([elem.iid, elem.est])
+    print "topK dict built \n Sorting dict"
+    for user, item_rating in top_k_dict.iteritems():
+        list  = sorted(item_rating, key=itemgetter(1), reverse=True)
+        new_list = []
+        for i in range(0,k):
+            new_list.append(list[i])
+        top_k_dict[user] = new_list
+        # for i in range(k, len(item_rating)):
+        #     item_rating.remove(k)
+
+    return top_k_dict
+
+
 
 
 train_file, test_file = load_train_test_data.load_data('Data/Patio_Lawn_and_Garden_5.json', train_rand=8,test_rand=2)
@@ -43,12 +65,15 @@ reader = sup.Reader(line_format = 'item user rating', sep= ";", rating_scale=(1,
 data = sup.Dataset.load_from_file(train_file, reader=reader)
 trainset = data.build_full_trainset()
 data.split(n_folds=5)
+testset = load_train_test_data.generate_test_data_tuple(test_file)
 
 user_item_dict = load_train_test_data.generate_user_item_dict(train_file)
 unique_item_list, unique_user_list= load_train_test_data.get_unique_item_user_list(train_file)
 top_k_pred_set = load_train_test_data.get_top_k_pred_set(user_item_dict, unique_item_list, unique_user_list)
 
-
+algo = KNNBasic()
+algo.train(trainset)
+pred = get_top_k(algo, top_k_pred_set, k=10)
 
 
 # aggregate mean absolute errors
@@ -93,14 +118,17 @@ for algo, params in algo_dict.iteritems():
     algo_param_scores[grid_search.best_estimator["rmse"]] = grid_search.best_score["rmse"]
     algo_param_scores[grid_search.best_estimator["mae"]] = grid_search.best_score["mae"]
 
-    best  = grid_search.best_estimator["rmse"]
-    best.train(trainset)
+    # best  = grid_search.best_estimator["rmse"]
+    # best.train(trainset)
 
 
+best_RMSE_algo.train(trainset)
+get_top_k(best_RMSE_algo, top_k_pred_set)
 
-
-for algo, score in algo_param_scores.iteritems():
-    rmse, mae = get_rmse_mae(algo, reviewerID, asin, score, trainset)
+for algo, s in algo_param_scores.iteritems():
+    algo.train(trainset)
+    rmse, mae = get_rmse_mae(algo, trainset, testset)
+    get_top_k(algo, top_k_pred_set)
 
 
 

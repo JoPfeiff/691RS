@@ -57,7 +57,7 @@ def get_grid():
 
     algo_dict = {
                     KNNBasic: knnbasic_param_grid,
-                    SVD: svd_param_grid,
+                    # SVD: svd_param_grid,
                     # KNNWithMeans: knnmeans_param_grid,
                     # NMF: nmf_param_grid,
                     # CoClustering: coclust_param_grid,

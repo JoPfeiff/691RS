@@ -36,9 +36,9 @@ def load_data(file_name, train_rand=8, test_rand=2):
 
         for elem in data.iteritems():
             if randint(1, train_rand+test_rand) <= train_rand:
-                data_csv_string_train += elem[1]['asin'] + ";" +elem[1]['reviewerID'] + ";" +  str(elem[1]['overall']) + "\n"
+                data_csv_string_train += elem[1]['asin'] + ";" + elem[1]['reviewerID'] + ";" +  str(elem[1]['overall']) + "\n"
             else:
-                data_csv_string_test += elem[1]['asin'] + ";" +elem[1]['reviewerID'] + ";" +  str(elem[1]['overall']) + "\n"
+                data_csv_string_test  += elem[1]['asin'] + ";" + elem[1]['reviewerID'] + ";" + str(elem[1]['overall']) + "\n"
 
         with open(new_file_name_train, "w") as text_file:
             text_file.write(data_csv_string_train)
@@ -58,8 +58,8 @@ def generate_test_data(file):
     with open(file) as f:
         for line in f:
             line = line.split(";")
-            asin.append(line[0])
-            reviewerID.append(line[1])
+            asin.append(line[1])
+            reviewerID.append(line[0])
             score.append(float(line[2]))
 
     return reviewerID, asin, score
@@ -100,13 +100,15 @@ def get_top_k_pred_set(user_item_dict, unique_item_list, unique_user_list):
 
     reviewerID = []
     asin = []
+    top_k_set = []
 
     for user in unique_user_list:
         for item in unique_item_list:
             if item not in user_item_dict[user]:
-                reviewerID.append(user)
-                asin.append(item)
-    return reviewerID, asin
+                # reviewerID.append(user)
+                # asin.append(item)
+                top_k_set.append((user,item,0))
+    return top_k_set #reviewerID, asin
 
 
 
