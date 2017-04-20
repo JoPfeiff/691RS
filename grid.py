@@ -47,11 +47,20 @@ def get_grid():
                       # 'reg_all': np.arange(0.1, 0.8, 0.2),
                       }
 
-    knnmeans_param_grid = {}
+    knnmeans_param_grid = {
+                           "k": range(10, 50, 5),
+                           'sim_options': similarity_dict
+                      }
 
-    nmf_param_grid = {}
+    nmf_param_grid = {
+                        "n_factors": [5, 10, 15, 20, 30, 50]
+						
+                     }
 
-    coclust_param_grid = {}
+    coclust_param_grid = {
+                        "n_cltr_u": [3, 5, 10],
+                        "n_cltr_i": [3, 5, 10]
+                         }
 
 
 
