@@ -1,15 +1,6 @@
-import json
-import pandas as pd
-import numpy as np
 import surprise as sup
-from surprise import SVD
-import os
-import os.path
 from surprise import SVD, SlopeOne, KNNBasic, KNNWithMeans, NMF, CoClustering
 from surprise import Dataset, GridSearch
-from surprise import evaluate, print_perf, similarities
-from random import randint
-
 
 
 def get_grid():

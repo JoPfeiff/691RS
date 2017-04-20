@@ -46,7 +46,7 @@ def load_data(file_name, train_rand=8, test_rand=2):
         with open(new_file_name_test, "w") as text_file:
             text_file.write(data_csv_string_test)
 
-        return os.path.expanduser(new_file_name_train), os.path.expanduser(new_file_name_train)
+        return os.path.expanduser(new_file_name_train), os.path.expanduser(new_file_name_test)
 
 
 def generate_test_data(file):
