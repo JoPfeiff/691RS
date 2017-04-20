@@ -18,7 +18,7 @@ import load_train_test_data
 def get_rmse_mae(algo, trainset, testset):
     algo.train(trainset)
     predictions = algo.test(testset)
-    print predictions
+    #print predictions
     return sup.accuracy.rmse(predictions, verbose=True), sup.accuracy.mae(predictions, verbose=True)
 
 def prediction(algo, predset):
@@ -43,6 +43,9 @@ reader = sup.Reader(line_format = 'item user rating', sep= ";", rating_scale=(1,
 data = sup.Dataset.load_from_file(train_file, reader=reader)
 trainset = data.build_full_trainset()
 data.split(n_folds=5)
+testset = load_train_test_data.generate_test_data_tuple(test_file)
+
+
 
 user_item_dict = load_train_test_data.generate_user_item_dict(train_file)
 unique_item_list, unique_user_list= load_train_test_data.get_unique_item_user_list(train_file)
@@ -100,11 +103,12 @@ for algo, params in algo_dict.iteritems():
 
 
 for algo, score in algo_param_scores.iteritems():
-    rmse, mae = get_rmse_mae(algo, reviewerID, asin, score, trainset)
+    rmse, mae = get_rmse_mae(algo, trainset, testset)
+    print rmse, mae
 
 
 
-plot_rmse_mae.plot_line_graph([rmses,maes], ["RMSES","MAES"], "RMSE VS MAE", range(1, len(rmses)+1))
+#plot_rmse_mae.plot_line_graph([rmses,maes], ["RMSES","MAES"], "RMSE VS MAE", range(1, len(rmses)+1))
 
 
 
