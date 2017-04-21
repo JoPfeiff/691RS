@@ -45,8 +45,8 @@ class Recommender:
 
             # get best params of each algorithm
 			
-            self.algo_param_scores[grid_search.best_estimator["rmse"]] = grid_search.best_score["rmse"]
-            self.algo_param_scores[grid_search.best_estimator["mae"]] = grid_search.best_score["mae"]
+            self.algo_param_scores[grid_search.best_estimator["rmse"]] = [grid_search.best_params["rmse"], grid_search.best_score["rmse"]]
+            self.algo_param_scores[grid_search.best_estimator["mae"]] = [grid_search.best_params["mae"], grid_search.best_score["mae"]]
             self.maes.append(grid_search.best_score["mae"])
             self.rmses.append(grid_search.best_score["rmse"])
             self.names.append(str(algo).split(" ")[0].split(".")[-1])
@@ -130,7 +130,7 @@ class Recommender:
         self.top_k_dict = top_k_dict
         return top_k_dict
 
-    def get_final_results():
+    def get_final_results(self):
         return self.maes, self.rmses, self.names
 
     def precision(self, top_k_dict, test_data,k):
@@ -147,11 +147,11 @@ class Recommender:
         for user, items in top_k_dict.iteritems():
             counter = 0.0
             if user not in user_item_dict:
-                # precision_list.append(0.0)
-                # precision_list.append(0.0)
-                # recall_list.append(0.0)
-                # item_counter.append(0.0)
-                ""
+                precision_list.append(0.0)
+                precision_list.append(0.0)
+                recall_list.append(0.0)
+                item_counter.append(0.0)
+                # ""
             else:
                 for item in items:
                     if item[0] in user_item_dict[user]:
@@ -159,7 +159,7 @@ class Recommender:
                 precision_list.append(counter/len(user_item_dict[user]))
                 recall_list.append(counter/k)
                 item_counter.append(len(user_item_dict[user]))
-        maxi = np.max(item_counter)
+        # maxi = np.max(item_counter)
 
         average_nr_items = np.average(item_counter)
         precision = np.average(precision_list)

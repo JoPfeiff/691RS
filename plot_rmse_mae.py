@@ -10,10 +10,11 @@ def plot_line_graph(arrays, labels, title_img, x_ticks, x_labels,  colors = ['ro
         array = arrays[i]
         index = range(len(array))
         values = array
-        ax.plot(x_ticks, x_labels, colors[i])
-        #ax.set_xlabel(tuning_parameter)
+        ax.plot(x_ticks, values, colors[i])
+        # ax.set_xlabel(x_labels)
         ax.set_ylabel('RMSE/MAE Score')
     plt.title(title_img)
+    plt.xticks(x_ticks, x_labels)
     plt.legend(labels, loc = 'right')
 
     plt.savefig("Figures/"+title_img+".pdf")
