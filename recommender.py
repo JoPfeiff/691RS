@@ -1,6 +1,6 @@
 import surprise as sup
 from surprise import GridSearch
-
+import numpy as np
 from operator import itemgetter
 
 
@@ -72,6 +72,16 @@ class Recommender:
             print "scorer not trained"
             return False
 
+
+    def get_best_algo(self, scorer):
+        if scorer in ["MAE", "mae"]:
+            return self.best_MAE[2]
+        elif scorer in ["RMSE", "rmse"]:
+            return self.best_RMSE[2]
+        else:
+            print "scorer not trained"
+            return False
+
     def get_best_score(self, scorer):
         if scorer in ["MAE", "mae"]:
             return self.best_MAE[0]
@@ -110,6 +120,41 @@ class Recommender:
             #     item_rating.remove(k)
         self.top_k_dict = top_k_dict
         return top_k_dict
+
+
+    def precision(self, top_k_dict, test_data,k):
+        user_item_dict ={}
+        for line in test_data:
+            if line[0] not in user_item_dict:
+                user_item_dict[line[0]] = {}
+            user_item_dict[line[0]][line[1]] = line[2]
+
+
+        precision_list = []
+        recall_list = []
+        item_counter= []
+        for user, items in top_k_dict.iteritems():
+            counter = 0.0
+            if user not in user_item_dict:
+                # precision_list.append(0.0)
+                # precision_list.append(0.0)
+                # recall_list.append(0.0)
+                # item_counter.append(0.0)
+                ""
+            else:
+                for item in items:
+                    if item[0] in user_item_dict[user]:
+                        counter += 1
+                precision_list.append(counter/len(user_item_dict[user]))
+                recall_list.append(counter/k)
+                item_counter.append(len(user_item_dict[user]))
+        maxi = np.max(item_counter)
+
+        average_nr_items = np.average(item_counter)
+        precision = np.average(precision_list)
+        recall = np.average(recall_list)
+        f = (2*precision*recall)/(precision+recall)
+        return precision, recall, f
 
 
 
