@@ -1,7 +1,7 @@
 import surprise as sup
 from surprise import SVD, SlopeOne, KNNBasic, KNNWithMeans, NMF, CoClustering
 from surprise import Dataset, GridSearch
-
+import numpy as np
 
 def get_grid():
     similarity_dict = [
@@ -32,8 +32,8 @@ def get_grid():
                            }
 
     svd_param_grid = {
-                      'n_epochs': range(1, 10, 2),
-                      # 'lr_all': np.arange(0.001, 0.01, 0.003),
+                      'n_epochs': [10],
+                      'lr_all': [.0001, .0005, .001]#, .003, .005, .007, .01, .05]
                       # 'biased': [True, False],
                       # 'reg_all': np.arange(0.1, 0.8, 0.2),
                       }
@@ -57,10 +57,10 @@ def get_grid():
 
     algo_dict = {
                     KNNBasic: knnbasic_param_grid,
-                    # SVD: svd_param_grid,
-                    # KNNWithMeans: knnmeans_param_grid,
-                    # NMF: nmf_param_grid,
-                    # CoClustering: coclust_param_grid,
+                    SVD: svd_param_grid,
+                    #KNNWithMeans: knnmeans_param_grid,
+                    #NMF: nmf_param_grid,
+                    #CoClustering: coclust_param_grid,
                 }
 
     return algo_dict

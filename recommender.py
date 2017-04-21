@@ -10,7 +10,9 @@ class Recommender:
         self.grid = None
         self.maes = []
         self.rmses = []
+        self.names = []
         self.algo_param_scores = {}
+
 
         self.best_MAE = [999,None,None]
         self.best_RMSE = [999,None,None]
@@ -27,9 +29,9 @@ class Recommender:
 
             test = grid_search.cv_results
             # I don't know why but sumetimes cv_results RMSE is empty? This is why Im doing it like this:
-            for i in range(0, len(grid_search.cv_results['scores'])):
+            '''for i in range(0, len(grid_search.cv_results['scores'])):
                 self.maes.append(grid_search.cv_results['scores'][i]['MAE'])
-                self.rmses.append(grid_search.cv_results['scores'][i]['RMSE'])
+                self.rmses.append(grid_search.cv_results['scores'][i]['RMSE'])'''
 
             # Get best overall algorithm for MAE and RMSE respectively
             if grid_search.best_score["mae"] < self.best_MAE[0]:
@@ -42,11 +44,18 @@ class Recommender:
                 self.best_RMSE[2] = grid_search.best_estimator["rmse"]
 
             # get best params of each algorithm
+			
             self.algo_param_scores[grid_search.best_estimator["rmse"]] = grid_search.best_score["rmse"]
             self.algo_param_scores[grid_search.best_estimator["mae"]] = grid_search.best_score["mae"]
+            self.maes.append(grid_search.best_score["mae"])
+            self.rmses.append(grid_search.best_score["rmse"])
+            self.names.append(str(algo).split(" ")[0].split(".")[-1])
 
             # best  = grid_search.best_estimator["rmse"]
             # best.train(trainset)
+        print self.maes
+        print self.rmses
+        print self.names
 
     def predict_best(self,train_data, test_data, scorer):
         if scorer in ["MAE", "mae"]:
@@ -111,6 +120,8 @@ class Recommender:
         self.top_k_dict = top_k_dict
         return top_k_dict
 
+    def get_final_results():
+        return self.maes, self.rmses, self.names
 
 
     #def predict_best_algo(self, test_data, scorer):
