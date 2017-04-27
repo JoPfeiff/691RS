@@ -72,20 +72,6 @@ class DataLoader:
 
             return os.path.expanduser(new_file_name_train), os.path.expanduser(new_file_name_test)
 
-    # def generate_test_data(file):
-    #
-    #     reviewerID = []
-    #     asin = []
-    #     score = []
-    #
-    #     with open(file) as f:
-    #         for line in f:
-    #             line = line.split(";")
-    #             asin.append(line[1])
-    #             reviewerID.append(line[0])
-    #             score.append(float(line[2]))
-    #
-    #     return reviewerID, asin, score
 
     def generate_test_data_tuple(self):
 

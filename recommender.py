@@ -12,12 +12,14 @@ class Recommender:
         self.rmses = []
         self.names = []
         self.algo_param_scores = {}
+        self.std_maes = []
+        self.std_rmses = []
 
 
         self.best_MAE = [999,None,None]
         self.best_RMSE = [999,None,None]
 
-        self.top_k_dict = None
+        self.top_k_dict = {}
 
     def train(self, train_data, grid):
         self.train_data = train_data
@@ -49,13 +51,21 @@ class Recommender:
             self.algo_param_scores[grid_search.best_estimator["mae"]] = [grid_search.best_params["mae"], grid_search.best_score["mae"]]
             self.maes.append(grid_search.best_score["mae"])
             self.rmses.append(grid_search.best_score["rmse"])
+
+            here_maes = []
+            here_rmses = []
+            for i in range(0, len(grid_search.cv_results['scores'])):
+                here_maes.append(grid_search.cv_results['scores'][i]['MAE'])
+                here_rmses.append(grid_search.cv_results['scores'][i]['RMSE'])
+
+            self.std_maes.append(np.std(here_maes))
+            self.std_rmses.append(np.std(here_rmses))
+
             self.names.append(str(algo).split(" ")[0].split(".")[-1])
 
-            # best  = grid_search.best_estimator["rmse"]
-            # best.train(trainset)
-        print self.maes
-        print self.rmses
-        print self.names
+        # print self.maes
+        # print self.rmses
+        # print self.names
 
     def predict_best(self,train_data, test_data, scorer):
         if scorer in ["MAE", "mae"]:
@@ -109,29 +119,35 @@ class Recommender:
             print "scorer not trained"
             return False
 
-        print "starting prediction of topK"
-        predictions = algo.test(top_k_set)
-        print "topK predicted"
-        top_k_dict = {}
-        print "build topK dict"
-        for elem in predictions:
-            if elem.uid not in top_k_dict:
-                top_k_dict[elem.uid] = []
-            top_k_dict[elem.uid].append([elem.iid, elem.est])
-        print "topK dict built \n Sorting dict"
-        for user, item_rating in top_k_dict.iteritems():
-            list = sorted(item_rating, key=itemgetter(1), reverse=True)
-            new_list = []
-            for i in range(0, k):
-                new_list.append(list[i])
-            top_k_dict[user] = new_list
-            # for i in range(k, len(item_rating)):
-            #     item_rating.remove(k)
-        self.top_k_dict = top_k_dict
-        return top_k_dict
+        last_user = top_k_set[0][0]
+        user_set = []
+        # If dataset is too big we get a memory leak. That is why we split the prediction
+        # into user chunks. It is assumed that the "top_k_set" is user sorted.
+        for line in top_k_set:
+            if line[0] != last_user:
+                predictions = algo.test(user_set)
+                top_k_user_dict = {}
+                for elem in predictions:
+                    if elem.uid not in top_k_user_dict:
+                        top_k_user_dict[elem.uid] = []
+                    top_k_user_dict[elem.uid].append([elem.iid, elem.est])
+                for user, item_rating in top_k_user_dict.iteritems():
+                    list = sorted(item_rating, key=itemgetter(1), reverse=True)
+                    new_list = []
+                    for i in range(0, k):
+                        new_list.append(list[i])
+                        top_k_user_dict[user] = new_list
+                self.top_k_dict[last_user] = top_k_user_dict[last_user]
+                user_set = []
+                last_user = line[0]
+                user_set.append(line)
+            else:
+                user_set.append(line)
+
+        return self.top_k_dict
 
     def get_final_results(self):
-        return self.maes, self.rmses, self.names
+        return self.maes, self.rmses, self.names, self.std_rmses, self.std_maes
 
     def precision(self, top_k_dict, test_data,k):
         user_item_dict ={}
@@ -139,8 +155,6 @@ class Recommender:
             if line[0] not in user_item_dict:
                 user_item_dict[line[0]] = {}
             user_item_dict[line[0]][line[1]] = line[2]
-
-
         precision_list = []
         recall_list = []
         item_counter= []
@@ -151,7 +165,6 @@ class Recommender:
                 precision_list.append(0.0)
                 recall_list.append(0.0)
                 item_counter.append(0.0)
-                # ""
             else:
                 for item in items:
                     if item[0] in user_item_dict[user]:
@@ -159,15 +172,10 @@ class Recommender:
                 precision_list.append(counter/len(user_item_dict[user]))
                 recall_list.append(counter/k)
                 item_counter.append(len(user_item_dict[user]))
-        # maxi = np.max(item_counter)
-
-        average_nr_items = np.average(item_counter)
         precision = np.average(precision_list)
         recall = np.average(recall_list)
         f = (2*precision*recall)/(precision+recall)
         return precision, recall, f
 
 
-
-    #def predict_best_algo(self, test_data, scorer):
 
